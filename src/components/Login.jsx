@@ -1,4 +1,4 @@
-// import axios from "axios";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -6,6 +6,7 @@ const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export const Login = () => {
   const [type, setType] = useState("login");
+  const [globalError, setGlobalError] = useState("");
 
   const {
     register,
@@ -14,7 +15,7 @@ export const Login = () => {
     reset,
   } = useForm({
     defaultValues: {
-      login: "",
+      username: "",
       email: "",
       password: "",
     },
@@ -22,32 +23,47 @@ export const Login = () => {
 
   useEffect(() => {
     reset();
+    setGlobalError("");
   }, [type, reset]);
 
   const onSubmit = async (data) => {
-    console.log(data);
-    // if (type === "register") {
-    //   try {
-    //     const response = await axios.post(
-    //       "http://68.183.74.14:4005/api/users/",
-    //       data
-    //     );
+    setGlobalError("");
 
-    //     console.log(response.data);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // } else {
-    //   try {
-    //     const response = await axios.get(
-    //       "http://68.183.74.14:4005/api/users/current/"
-    //     );
+    if (type === "register") {
+      try {
+        const response = await axios.post(
+          "http://68.183.74.14:4005/api/users/",
+          data
+        );
 
-    //     console.log(response.data);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // }
+        console.log(response.data);
+      } catch (error) {
+        setGlobalError("Incorect data. Please try again or log in");
+        console.error(error);
+      }
+    } else {
+      try {
+        const response = await axios.get(
+          "http://68.183.74.14:4005/api/users/current/",
+          {
+            headers: {
+              Authorization:
+                "Basic " + btoa(`${data.username}:${data.password}`),
+            },
+          }
+        );
+
+        localStorage.setItem(
+          "EmailSenderAppUserData",
+          JSON.stringify({ ...response.data, password: data.password })
+        );
+
+        console.log(response.data);
+      } catch (error) {
+        setGlobalError("Incorrect data. Please try again or register");
+        console.error(error);
+      }
+    }
   };
 
   return (
@@ -62,18 +78,18 @@ export const Login = () => {
         className="flex flex-col gap-2"
       >
         <div className="flex flex-col">
-          <label htmlFor="login">Login:</label>
+          <label htmlFor="username">Username:</label>
           <input
-            id="login"
+            id="username"
             type="text"
-            placeholder="Enter your login"
+            placeholder="Enter your username"
             className="border border-black rounded-sm p-2"
-            {...register("login", {
-              required: "Login is required",
+            {...register("username", {
+              required: "Username is required",
             })}
           />
-          {errors.login && (
-            <p className="text-red-500">{errors.login.message}</p>
+          {errors.username && (
+            <p className="text-red-500">{errors.username.message}</p>
           )}
         </div>
 
@@ -122,6 +138,8 @@ export const Login = () => {
         <button className="bg-blue-600 text-white mt-2">
           {type === "login" ? "Log in" : "Register"}
         </button>
+
+        {globalError && <p className="text-red-500 text-xs">{globalError}</p>}
       </form>
 
       <p className="font-poppins text-main text-center">
