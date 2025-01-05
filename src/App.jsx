@@ -1,9 +1,11 @@
-import "./App.css";
+import { Email } from "./components/Email";
+// import { Login } from "./components/Login";
 
 function App() {
   return (
     <div>
-      <h1>Hello world</h1>
+      {/* <Login /> */}
+      <Email />
     </div>
   );
 }
